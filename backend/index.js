@@ -13,15 +13,30 @@ dotenv.config({});
 const app = express();
 const __dirname=path.resolve();
 // middleware
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",").map(url => url.trim())
+  : ["http://localhost:5173"];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow server-to-server / mobile apps (no origin)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log("❌ CORS blocked for:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
-const corsOptions = {
-    origin:'https://jobboard-iscj.onrender.com',
-    credentials:true
-}
-
-app.use(cors(corsOptions));
 // app.use(cors());
 const PORT = process.env.PORT || 3000;
 
